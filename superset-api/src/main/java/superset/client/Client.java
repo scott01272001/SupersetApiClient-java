@@ -23,6 +23,11 @@ import lombok.Data;
 import superset.client.api.Api;
 import superset.client.exception.UnexceptedResponseException;
 
+/**
+ * A client for interacting with the Superset API. This client provides methods
+ * for exporting and importing dashboards, as well as retrieving a list of
+ * available dashboards.
+ */
 public class Client {
 
     private String host;
@@ -31,10 +36,31 @@ public class Client {
     private String csrfToken;
     private CloseableHttpClient client;
 
+    /**
+     * 
+     * Creates a new Superset API client with the given credentials.
+     * 
+     * @param host     The hostname of the Superset server.
+     * @param port     The port number of the Superset server.
+     * @param username The username to use when authenticating.
+     * @param password The password to use when authenticating.
+     * @throws Exception If there was an error creating the client.
+     */
     public Client(String host, int port, String username, String password) throws Exception {
         this(host, port, username, password, null);
     }
 
+    /**
+     * 
+     * Creates a new Superset API client with the given credentials.
+     * 
+     * @param host     The hostname of the Superset server.
+     * @param port     The port number of the Superset server.
+     * @param username The username to use when authenticating.
+     * @param password The password to use when authenticating.
+     * @param client   The underlying HttpClient to use.
+     * @throws Exception If there was an error creating the client.
+     */
     public Client(String host, int port, String username, String password, CloseableHttpClient client)
             throws Exception {
         if (client == null) {
@@ -51,6 +77,17 @@ public class Client {
         this.port = port;
     }
 
+    /**
+     * 
+     * Returns a list of available dashboards.
+     * 
+     * @return A JSON array containing a list of dashboards.
+     * @throws URISyntaxException      If the Superset URL is invalid.
+     * @throws ClientProtocolException If there was an error communicating with the
+     *                                 Superset server.
+     * @throws IOException             If there was an error communicating with the
+     *                                 Superset server.
+     */
     public JsonElement dashboards()
             throws URISyntaxException, ClientProtocolException, IOException {
         HttpUriRequest request = Api.geListDashboardsRequest(host, port, authToken);
@@ -58,6 +95,17 @@ public class Client {
         return JsonParser.parseString(resp.getBody());
     }
 
+    /**
+     * Exports a dashboard with the specified ID and saves it to the given file.
+     * 
+     * @param dashboardId the ID of the dashboard to export
+     * @param destination the file to save the exported dashboard to
+     * @return the downloaded file
+     * @throws URISyntaxException      if there is an error in the URI syntax
+     * @throws ClientProtocolException if there is an error in the HTTP protocol
+     * @throws IOException             if there is an I/O error while sending or
+     *                                 receiving the HTTP request/response
+     */
     public File exportDashboard(int dashboardId, File destination)
             throws URISyntaxException, ClientProtocolException, IOException {
         HttpUriRequest request = Api.getExportDashboardRequest(host, port, authToken, dashboardId);
@@ -66,6 +114,17 @@ public class Client {
         return downloadFile;
     }
 
+    /**
+     * Imports a dashboard from a file.
+     * 
+     * @param dashboardFile the file containing the dashboard definition to import
+     * @param password      A JSON format database password, e.g:
+     *                      {\"databases/database.yaml\":\"password\"}
+     * @param override      override exist dashboard
+     * @throws ClientProtocolException if there was a problem with the HTTP protocol
+     * @throws URISyntaxException      if there was a problem with the URI syntax
+     * @throws IOException             if there was a problem with the I/O
+     */
     public void importDashboard(File dashboardFile, JsonElement password, boolean override)
             throws ClientProtocolException, URISyntaxException, IOException {
         csrf();
