@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.rmi.ConnectException;
-import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpResponse;
@@ -13,7 +11,6 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
@@ -67,6 +64,14 @@ public class Client {
 
         File downloadFile = client.execute(request, new FileDownloadResponseHandler(destination));
         return downloadFile;
+    }
+
+    public void importDashboard(File dashboardFile, JsonElement password, boolean override)
+            throws ClientProtocolException, URISyntaxException, IOException {
+        csrf();
+        HttpUriRequest request = Api.getImportDashboardRequest(host, port, authToken, csrfToken, dashboardFile,
+                override, password);
+        executeRequest(request);
     }
 
     private void csrf() throws URISyntaxException, ClientProtocolException, IOException {
